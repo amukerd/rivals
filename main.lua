@@ -332,7 +332,7 @@ end
 end)
 
 local toggle3 = section2:Toggle{
-	Name = "Box ESP",
+	Name = "Box",
 	Flag = "Toggle 3",
 	Callback = function(state)
 		toggleEnabled3 = state
