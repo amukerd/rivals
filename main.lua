@@ -1,121 +1,18 @@
 local Players = game:GetService("Players")
 local LocalPlayer = Players.LocalPlayer
-
-local function addHighlight(player)
-	if player == LocalPlayer then return end
-
-	local character = player.Character or player.CharacterAdded:Wait()
-
-	local existingHighlight = character:FindFirstChildOfClass("Highlight")
-	if existingHighlight then
-		existingHighlight:Destroy()
-	end
-
-	local highlight = Instance.new("Highlight")
-	highlight.Adornee = character
-	highlight.FillColor = Color3.fromRGB(0, 0, 255)
-	highlight.FillTransparency = 0.5
-	highlight.OutlineColor = Color3.fromRGB(0, 0, 255)
-	highlight.OutlineTransparency = 0
-	highlight.Parent = character
-end
-
---for _, player in pairs(Players:GetPlayers()) do
---	addHighlight(player)
---end
-
-Players.PlayerAdded:Connect(function(player)
-	addHighlight(player)
-end)
-
-Players.PlayerAdded:Connect(function(player)
-	player.CharacterAdded:Connect(function()
-		addHighlight(player)
-	end)
-end)
-
-
-
-
-
-
-
-
-
-
+local RunService = game:GetService("RunService")
+local Camera = workspace.CurrentCamera
 
 local library = loadstring(game:HttpGet("https://raw.github.com/amukerd/rivals/main/lib.lua"))()
 
-local main = library:Load{
-    Name = "vozoid hax or something",
-    SizeX = 600,
-    SizeY = 650,
-    Theme = "Midnight",
-    Extension = "json", -- config file extension
-    Folder = "vozoid ui or something" -- config folder name
-}
+local main = library:Load{Name="Rivals",SizeX=600,SizeY=600,Theme="Midnight",Extension="json",Folder="Rivals_Config"}
 
--- library.Extension = "txt" (config file extension)
--- library.Folder = "config folder name"
-
-local tab = main:Tab("Tab")
+local tab = main:Tab("Main")
 
 local section = tab:Section{
-    Name = "Section",
+    Name = "Aimbot",
     Side = "Left"
 }
-
-local label = section:Label("Label")
-
---label:Set("Label Set")
-
-section:Button{
-    Name = "Destroy UI",
-    Callback  = function()
-        library:Unload()
-    end
-}
-
-section:Button{
-    Name = "Button",
-    Callback  = function()
-        print("Button clicked")
-    end
-}
-
-local seperator = section:Separator("Separator")
---separator:Set("Separator Set")
-
-local toggle = section:Toggle{
-    Name = "Toggle",
-    Flag = "Toggle 1",
-    --Default = true,
-    Callback  = function(bool)
-        print("Toggle 1 is now " .. (bool and "enabled" or "disabled"))
-    end
-}
-
-local togglepicker1 = toggle:ColorPicker{
-    Default = Color3.fromRGB(255, 0, 0), 
-    Flag = "Toggle 1 Picker 1", 
-    Callback = function(color)
-        print("Toggle 1 Picker 1 is now " .. string.format("%s, %s, %s, %s", math.round(color.R * 255), math.round(color.G * 255), math.round(color.B * 255), math.floor(color.A * 100) / 100))
-    end
-}
-
---togglepicker1:Set(Color3.fromRGB(255, 255, 255))
-
-local togglepicker2 = toggle:ColorPicker{
-    Default = Color3.fromRGB(0, 255, 0), 
-    Flag = "Toggle 1 Picker 2", 
-    Callback = function(color)
-        print("Toggle 1 Picker 2 is now " .. string.format("%s, %s, %s, %s", math.round(color.R * 255), math.round(color.G * 255), math.round(color.B * 255), math.floor(color.A * 100) / 100))
-    end
-}
-
---togglepicker2:Set(Color3.fromRGB(255, 255, 255))
-
---toggle:Toggle(true)
 
 local toggle2 = section:Toggle{
     Name = "Toggle 2",
@@ -140,211 +37,364 @@ toggle2:Keybind{
     end
 }
 
-local toggle3 = section:Toggle{
-    Name = "Toggle 3",
-    Flag = "Toggle 3",
-    --Default = true,
-    Callback  = function(bool)
-        print("Toggle 3 is now " .. (bool and "enabled" or "disabled"))
-    end
+local section2 = tab:Section{
+    Name = "Visuals",
+    Side = "Right"
 }
 
-toggle3:Slider{
-    Text = "[value]/5",
-    --Default = 5,
-    Min = 0,
-    Max = 5,
-    Float = 0.5,
-    Flag = "Slider 1",
-    Callback = function(value)
-        print("Toggle 3 Slider 1 is now " .. value)
-    end
+--chams toggle stuff
+local playerHighlights = {}
+local currentColor = Color3.fromRGB(255, 0, 0)
+local toggleEnabled = false
+local function addHighlight(player)
+if player == LocalPlayer then return end
+local character = player.Character or player.CharacterAdded:Wait()
+local existing = playerHighlights[player]
+if existing then existing:Destroy() end
+local highlight = Instance.new("Highlight")
+highlight.Adornee = character
+highlight.FillColor = currentColor
+highlight.OutlineColor = currentColor
+highlight.FillTransparency = 0.5
+highlight.OutlineTransparency = 0
+highlight.Parent = character
+playerHighlights[player] = highlight
+end
+local function removeHighlight(player)
+local existing = playerHighlights[player]
+if existing then
+existing:Destroy()
+playerHighlights[player] = nil
+end
+end
+for _, player in ipairs(Players:GetPlayers()) do
+if player ~= LocalPlayer then
+player.CharacterAdded:Connect(function()
+if toggleEnabled then
+addHighlight(player)
+end
+end)
+end
+end
+Players.PlayerAdded:Connect(function(player)
+if player == LocalPlayer then return end
+player.CharacterAdded:Connect(function()
+if toggleEnabled then
+addHighlight(player)
+end
+end)
+if toggleEnabled then
+addHighlight(player)
+end
+end)
+--chams toggle stuff
+
+local toggle = section2:Toggle{
+	Name = "Chams",
+	Flag = "Toggle 1",
+	Callback = function(state)
+		toggleEnabled = state
+
+		for _, player in ipairs(Players:GetPlayers()) do
+			if player == LocalPlayer then continue end
+
+			if state then
+				addHighlight(player)
+			else
+				removeHighlight(player)
+			end
+		end
+	end
 }
 
-local toggle4 = section:Toggle{
-    Name = "Toggle 4",
-    Flag = "Toggle 4",
-    --Default = true,
-    Callback  = function(bool)
-        print("Toggle 4 is now " .. (bool and "enabled" or "disabled"))
-    end
+local togglepicker1 = toggle:ColorPicker{
+	Default = currentColor,
+	Flag = "Toggle 1 Picker 1",
+	Callback = function(color)
+		currentColor = color
+
+		for _, highlight in pairs(playerHighlights) do
+			if highlight and highlight.Parent then
+				highlight.FillColor = color
+				highlight.OutlineColor = color
+			end
+		end
+	end
 }
 
-toggle4:Dropdown{
-    --Default = "Option 1",
-    Content = {
-        "Option 1",
-        "Option 2",
-        "Option 3"
-    },
-    --Max = 5, -- turns into multidropdown
-    --Scrollable = true, -- makes it scrollable
-    --ScrollingMax = 5, -- caps the amount it contains before scrolling
-    Flag = "Dropdown 1",
-    Callback = function(option)
-        print("Dropdown 1 is now " .. tostring(option))
-    end
+local toggleEnabled2 = false
+local currentColor2 = Color3.fromRGB(255, 0, 0)
+local skeletons = {}
+local bonePairsR6 = {
+{"Head", "Torso"},
+{"Torso", "Left Arm"},
+{"Torso", "Right Arm"},
+{"Torso", "Left Leg"},
+{"Torso", "Right Leg"},
+}
+local bonePairsR15 = {
+{"Head", "UpperTorso"},
+{"UpperTorso", "LowerTorso"},
+{"UpperTorso", "LeftUpperArm"},
+{"LeftUpperArm", "LeftLowerArm"},
+{"LeftLowerArm", "LeftHand"},
+{"UpperTorso", "RightUpperArm"},
+{"RightUpperArm", "RightLowerArm"},
+{"RightLowerArm", "RightHand"},
+{"LowerTorso", "LeftUpperLeg"},
+{"LeftUpperLeg", "LeftLowerLeg"},
+{"LeftLowerLeg", "LeftFoot"},
+{"LowerTorso", "RightUpperLeg"},
+{"RightUpperLeg", "RightLowerLeg"},
+{"RightLowerLeg", "RightFoot"},
+}
+local function createLine()
+local line = Drawing.new("Line")
+line.Thickness = 2.5
+line.Transparency = 1
+line.Color = currentColor2
+line.Visible = true
+return line
+end
+local function makeSkeleton(player)
+if player == LocalPlayer then return end
+local character = player.Character or player.CharacterAdded:Wait()
+local humanoid = character:WaitForChild("Humanoid")
+local rigType = humanoid.RigType
+local bonePairs = rigType == Enum.HumanoidRigType.R15 and bonePairsR15 or bonePairsR6
+local bones = {}
+for _, pair in ipairs(bonePairs) do
+local line = createLine()
+table.insert(bones, {Parts = pair, Line = line})
+end
+skeletons[player] = {bones = bones}
+end
+local function removeSkeleton(player)
+local data = skeletons[player]
+if data and data.bones then
+for _, bone in ipairs(data.bones) do
+if bone.Line then
+bone.Line:Remove()
+end
+end
+skeletons[player] = nil
+end
+end
+Players.PlayerAdded:Connect(function(player)
+player.CharacterAdded:Connect(function()
+if toggleEnabled2 then
+makeSkeleton(player)
+end
+end)
+end)
+Players.PlayerRemoving:Connect(removeSkeleton)
+RunService.RenderStepped:Connect(function()
+if not toggleEnabled2 then return end
+for player, data in pairs(skeletons) do
+local char = player.Character
+if not char then continue end
+for _, bone in ipairs(data.bones) do
+local part0 = char:FindFirstChild(bone.Parts[1])
+local part1 = char:FindFirstChild(bone.Parts[2])
+if not part0 or not part1 then
+bone.Line.Visible = false
+continue
+end
+local pos0, onScreen0 = Camera:WorldToViewportPoint(part0.Position)
+local pos1, onScreen1 = Camera:WorldToViewportPoint(part1.Position)
+if onScreen0 and onScreen1 then
+bone.Line.From = Vector2.new(pos0.X, pos0.Y)
+bone.Line.To = Vector2.new(pos1.X, pos1.Y)
+bone.Line.Visible = true
+else
+bone.Line.Visible = false
+end
+end
+end
+end)
+
+local toggle2 = section2:Toggle{
+	Name = "Skeleton",
+	Flag = "Toggle 2",
+	Callback = function(state)
+		toggleEnabled2 = state
+	
+		if toggleEnabled2 then
+			for _, player in ipairs(Players:GetPlayers()) do
+				if player ~= LocalPlayer then
+					makeSkeleton(player)
+				end
+			end
+		else
+			for player in pairs(skeletons) do
+				removeSkeleton(player)
+			end
+		end
+	end
+}
+
+local togglepicker2 = toggle2:ColorPicker{
+	Default = currentColor2,
+	Flag = "Toggle 2 Picker 2",
+	Callback = function(color)
+		currentColor2 = color
+
+		for _, skeleton in pairs(skeletons) do
+			for _, bone in ipairs(skeleton.bones) do
+				if bone.Line then
+					bone.Line.Color = currentColor2
+				end
+			end
+		end
+	end
+}
+
+local BOX_THICKNESS = 2
+local BOX_SIZE = Vector3.new(2.1, 3.1, 0)
+local currentColor3 = Color3.fromRGB(255, 0, 0)
+local boxes = {}
+local function createBox()
+local box = {}
+for i = 1, 4 do
+local line = Drawing.new("Line")
+line.Color = currentColor3
+line.Thickness = BOX_THICKNESS
+line.Transparency = 1
+line.Visible = true
+box[i] = line
+end
+return box
+end
+local function updateBox(box, topLeft, topRight, bottomRight, bottomLeft)
+box[1].From = topLeft
+box[1].To = topRight
+box[2].From = topRight
+box[2].To = bottomRight
+box[3].From = bottomRight
+box[3].To = bottomLeft
+box[4].From = bottomLeft
+box[4].To = topLeft
+for _, line in ipairs(box) do
+line.Visible = true
+end
+end
+local function hideBox(box)
+for _, line in ipairs(box) do
+line.Visible = false
+end
+end
+local function removeBox(player)
+if boxes[player] then
+for _, line in ipairs(boxes[player]) do
+line:Remove()
+end
+boxes[player] = nil
+end
+end
+Players.PlayerRemoving:Connect(removeBox)
+RunService.RenderStepped:Connect(function()
+if not toggleEnabled3 then return end
+for _, player in ipairs(Players:GetPlayers()) do
+if player == LocalPlayer then continue end
+local character = player.Character
+local root = character and character:FindFirstChild("HumanoidRootPart")
+if not root then
+if boxes[player] then hideBox(boxes[player]) end
+continue
+end
+if not boxes[player] then
+boxes[player] = createBox()
+end
+local cframe = root.CFrame
+local size = BOX_SIZE
+local points3D = {
+cframe * Vector3.new(-size.X, size.Y, 0),
+cframe * Vector3.new(size.X, size.Y, 0),
+cframe * Vector3.new(size.X, -size.Y, 0),
+cframe * Vector3.new(-size.X, -size.Y, 0)
+}
+local points2D = {}
+local onScreen = true
+for i, point in ipairs(points3D) do
+local screenPos, visible = Camera:WorldToViewportPoint(point)
+if not visible then
+onScreen = false
+break
+end
+points2D[i] = Vector2.new(screenPos.X, screenPos.Y)
+end
+if onScreen then
+updateBox(boxes[player], points2D[1], points2D[2], points2D[3], points2D[4])
+else
+hideBox(boxes[player])
+end
+end
+end)
+
+local toggle3 = section2:Toggle{
+	Name = "Box ESP",
+	Flag = "Toggle 3",
+	Callback = function(state)
+		toggleEnabled3 = state
+
+		if not toggleEnabled3 then
+			for player, box in pairs(boxes) do
+				hideBox(box)
+			end
+		end
+	end
+}
+
+local togglepicker3 = toggle3:ColorPicker{
+	Default = currentColor3,
+	Flag = "Toggle 3 Picker",
+	Callback = function(color)
+		currentColor3 = color
+
+		for _, box in pairs(boxes) do
+			for _, line in ipairs(box) do
+				line.Color = currentColor3
+			end
+		end
+	end
 }
 
 
-local box = section:Box{
-    Name = "Box",
-    --Default = "hi",
-    Placeholder = "Box Placeholder",
-    Flag = "Box 1",
-    Callback = function(text)
-        print("Box 1 is now " .. text)
-    end
-}
-
---box:Set("New box text")
-
-local slider = section:Slider{
-    Name = "Slider",
-    Text = "[value]/1",
-    --Default = 0.1,
-    Min = 0,
-    Max = 1,
-    Float = 0.1,
-    Flag = "Slider 1",
-    Callback = function(value)
-        print("Slider 1 is now " .. value)
-    end
-}
-
---slider:Set(1)
-
-local dropdown = section:Dropdown{
-    Name = "Dropdown",
-    --Default = "Option 1",
-    Content = {
-        "Option 1",
-        "Option 2",
-        "Option 3"
-    },
-    Flag = "Dropdown 1",
-    Callback = function(option)
-        print("Dropdown 1 is now " .. tostring(option))
-    end
-}
 
 
-dropdown:Set() -- using this without any args or with wrong args will unset the dropdown
---dropdown:Set("option 6") wont work and will unset
 
-dropdown:Refresh{
-    "Refreshed option 1",
-    "Refreshed option 2",
-    "Refreshed option 3"
-}
 
-dropdown:Set("Refreshed option 1")
 
-dropdown:Add("Option 4")
 
-dropdown:Remove("Option 4")
 
-local multidropdown = section:Dropdown{
-    Name = "Multi dropdown",
-    --Default = {"Option 1"},
-    Max = 3, -- makes it multi
-    Content = {
-        "Option 1",
-        "Option 2",
-        "Option 3"
-    },
-    Flag = "Multi dropdown 1",
-    Callback = function(option)
-        print("Multi dropdown 1 is now " .. table.concat(option, ", "))
-    end
-}
 
-multidropdown:Set() -- using this without any args or with wrong args will unset the dropdown
-multidropdown:Set{} -- using this without any args or with wrong args will unset the dropdown
---multidropdown:Set{"option 12321313"} wont work and will unset
---multidropdown:Set("hello") wont work and will unset
 
-multidropdown:Refresh{
-    "Refreshed option 1",
-    "Refreshed option 2",
-    "Refreshed option 3",
-    "Refreshed option 4"
-}
 
-multidropdown:Set{
-    "Refreshed option 1",
-    "Refreshed option 2"
-}
 
-multidropdown:Add("Option 5")
 
-multidropdown:Remove("Option 5")
 
-local dropdown = section:Dropdown{
-    Name = "Scrolling Dropdown",
-    --Default = "Option 1",
-    Scrollable = true,
-    ScrollingMax = 5,
-    Content = {
-        "Option 1",
-        "Option 2",
-        "Option 3",
-        "Option 4",
-        "Option 5",
-        "Option 6",
-        "Option 7"
-    },
-    Flag = "Scrolling Dropdown 1",
-    Callback = function(option)
-        print("Scrolling Dropdown 1 is now " .. tostring(option))
-    end
-}
 
-local colorpicker = section:ColorPicker{
-    Name = "Color picker",
-    Default = Color3.fromRGB(0, 255, 0),
-    Flag = "Color picker 1",
-    Callback = function(color)
-        print("Color picker 1 is now: " .. string.format("%s, %s, %s, %s", math.round(color.R * 255), math.round(color.G * 255), math.round(color.B * 255), math.floor(color.A * 100) / 100))
-    end
-}
 
---colorpicker:Set(Color3.fromRGB(255, 255, 255))
 
-local colorpickerpicker1 = colorpicker:ColorPicker{
-    Default = Color3.fromRGB(0, 255, 255),
-    DefaultAlpha = 0.5,
-    Flag = "Color picker picker 1",
-    Callback = function(color)
-        print("Color picker 1 picker 1 is now: " .. string.format("%s, %s, %s, %s", math.round(color.R * 255), math.round(color.G * 255), math.round(color.B * 255), math.floor(color.A * 100) / 100))
-    end
-}
 
---colorpickerpicker1:Set(Color3.fromRGB(255, 255, 255))
 
-local colorpickerpicker2 = colorpicker:ColorPicker{
-    Default = Color3.fromRGB(255, 255, 255),
-    Flag = "Color picker picker 2",
-    Callback = function(color)
-        print("Color picker 1 picker 2 is now " .. string.format("%s, %s, %s, %s", math.round(color.R * 255), math.round(color.G * 255), math.round(color.B * 255), math.floor(color.A * 100) / 100))
-    end
-}
 
---colorpickerpicker2:Set(Color3.fromRGB(255, 255, 255))
 
-local keybind = section:Keybind{
-    Name = "Keybind",
-    --Default = Enum.KeyCode.A,
-    --Blacklist = {Enum.UserInputType.MouseButton1, Enum.UserInputType.MouseButton2},
-    Flag = "Keybind 1",
-    Callback = function(key, fromsetting)
-        if fromsetting then
-            print("Keybind 1 is now " .. tostring(key))
-        else
-            print("Keybind 1 was pressed")
-        end
-    end
-}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 --library:SaveConfig("config", true) -- universal config
@@ -356,199 +406,13 @@ local keybind = section:Keybind{
 --library:LoadConfig("config", true) -- load universal config
 --library:LoadConfig("config") -- load game specific config
 
-local configs = main:Tab("Configuration")
-
-local themes = configs:Section{Name = "Theme", Side = "Left"}
-
-local themepickers = {}
-
-local themelist = themes:Dropdown{
-    Name = "Theme",
-    Default = library.currenttheme,
-    Content = library:GetThemes(),
-    Flag = "Theme Dropdown",
-    Callback = function(option)
-        if option then
-            library:SetTheme(option)
-
-            for option, picker in next, themepickers do
-                picker:Set(library.theme[option])
-            end
-        end
-    end
-}
-
-library:ConfigIgnore("Theme Dropdown")
-
-local namebox = themes:Box{
-    Name = "Custom Theme Name",
-    Placeholder = "Custom Theme",
-    Flag = "Custom Theme"
-}
-
-library:ConfigIgnore("Custom Theme")
-
-themes:Button{
-    Name = "Save Custom Theme",
-    Callback = function()
-        if library:SaveCustomTheme(library.flags["Custom Theme"]) then
-            themelist:Refresh(library:GetThemes())
-            themelist:Set(library.flags["Custom Theme"])
-            namebox:Set("")
-        end
-    end
-}
-
-local customtheme = configs:Section{Name = "Custom Theme", Side = "Right"}
-
-themepickers["Accent"] = customtheme:ColorPicker{
-    Name = "Accent",
-    Default = library.theme["Accent"],
-    Flag = "Accent",
-    Callback = function(color)
-        library:ChangeThemeOption("Accent", color)
-    end
-}
-
-library:ConfigIgnore("Accent")
-
-themepickers["Window Background"] = customtheme:ColorPicker{
-    Name = "Window Background",
-    Default = library.theme["Window Background"],
-    Flag = "Window Background",
-    Callback = function(color)
-        library:ChangeThemeOption("Window Background", color)
-    end
-}
-
-library:ConfigIgnore("Window Background")
-
-themepickers["Window Border"] = customtheme:ColorPicker{
-    Name = "Window Border",
-    Default = library.theme["Window Border"],
-    Flag = "Window Border",
-    Callback = function(color)
-        library:ChangeThemeOption("Window Border", color)
-    end
-}
-
-library:ConfigIgnore("Window Border")
-
-themepickers["Tab Background"] = customtheme:ColorPicker{
-    Name = "Tab Background",
-    Default = library.theme["Tab Background"],
-    Flag = "Tab Background",
-    Callback = function(color)
-        library:ChangeThemeOption("Tab Background", color)
-    end
-}
-
-library:ConfigIgnore("Tab Background")
-
-themepickers["Tab Border"] = customtheme:ColorPicker{
-    Name = "Tab Border",
-    Default = library.theme["Tab Border"],
-    Flag = "Tab Border",
-    Callback = function(color)
-        library:ChangeThemeOption("Tab Border", color)
-    end
-}
-
-library:ConfigIgnore("Tab Border")
-
-themepickers["Tab Toggle Background"] = customtheme:ColorPicker{
-    Name = "Tab Toggle Background",
-    Default = library.theme["Tab Toggle Background"],
-    Flag = "Tab Toggle Background",
-    Callback = function(color)
-        library:ChangeThemeOption("Tab Toggle Background", color)
-    end
-}
-
-library:ConfigIgnore("Tab Toggle Background")
-
-themepickers["Section Background"] = customtheme:ColorPicker{
-    Name = "Section Background",
-    Default = library.theme["Section Background"],
-    Flag = "Section Background",
-    Callback = function(color)
-        library:ChangeThemeOption("Section Background", color)
-    end
-}
-
-library:ConfigIgnore("Section Background")
-
-themepickers["Section Border"] = customtheme:ColorPicker{
-    Name = "Section Border",
-    Default = library.theme["Section Border"],
-    Flag = "Section Border",
-    Callback = function(color)
-        library:ChangeThemeOption("Section Border", color)
-    end
-}
-
-library:ConfigIgnore("Section Border")
-
-themepickers["Text"] = customtheme:ColorPicker{
-    Name = "Text",
-    Default = library.theme["Text"],
-    Flag = "Text",
-    Callback = function(color)
-        library:ChangeThemeOption("Text", color)
-    end
-}
-
-library:ConfigIgnore("Text")
-
-themepickers["Disabled Text"] = customtheme:ColorPicker{
-    Name = "Disabled Text",
-    Default = library.theme["Disabled Text"],
-    Flag = "Disabled Text",
-    Callback = function(color)
-        library:ChangeThemeOption("Disabled Text", color)
-    end
-}
-
-library:ConfigIgnore("Disabled Text")
-
-themepickers["Object Background"] = customtheme:ColorPicker{
-    Name = "Object Background",
-    Default = library.theme["Object Background"],
-    Flag = "Object Background",
-    Callback = function(color)
-        library:ChangeThemeOption("Object Background", color)
-    end
-}
-
-library:ConfigIgnore("Object Background")
-
-themepickers["Object Border"] = customtheme:ColorPicker{
-    Name = "Object Border",
-    Default = library.theme["Object Border"],
-    Flag = "Object Border",
-    Callback = function(color)
-        library:ChangeThemeOption("Object Border", color)
-    end
-}
-
-library:ConfigIgnore("Object Border")
-
-themepickers["Dropdown Option Background"] = customtheme:ColorPicker{
-    Name = "Dropdown Option Background",
-    Default = library.theme["Dropdown Option Background"],
-    Flag = "Dropdown Option Background",
-    Callback = function(color)
-        library:ChangeThemeOption("Dropdown Option Background", color)
-    end
-}
-
-library:ConfigIgnore("Dropdown Option Background")
+local configs = main:Tab("UI Configuration")
 
 local configsection = configs:Section{Name = "Configs", Side = "Left"}
 
 local configlist = configsection:Dropdown{
     Name = "Configs",
-    Content = library:GetConfigs(), -- GetConfigs(true) if you want universal configs
+    Content = library:GetConfigs(),
     Flag = "Config Dropdown"
 }
 
@@ -557,14 +421,14 @@ library:ConfigIgnore("Config Dropdown")
 local loadconfig = configsection:Button{
     Name = "Load Config",
     Callback = function()
-        library:LoadConfig(library.flags["Config Dropdown"]) -- LoadConfig(library.flags["Config Dropdown"], true)  if you want universal configs
+        library:LoadConfig(library.flags["Config Dropdown"])
     end
 }
 
 local delconfig = configsection:Button{
     Name = "Delete Config",
     Callback = function()
-        library:DeleteConfig(library.flags["Config Dropdown"]) -- DeleteConfig(library.flags["Config Dropdown"], true)  if you want universal configs
+        library:DeleteConfig(library.flags["Config Dropdown"])
         configlist:Refresh(library:GetConfigs())
     end
 }
@@ -581,17 +445,17 @@ library:ConfigIgnore("Config Name")
 local save = configsection:Button{
     Name = "Save Config",
     Callback = function()
-        library:SaveConfig(library.flags["Config Dropdown"] or library.flags["Config Name"]) -- SaveConfig(library.flags["Config Name"], true) if you want universal configs
+        library:SaveConfig(library.flags["Config Dropdown"] or library.flags["Config Name"])
         configlist:Refresh(library:GetConfigs())
     end
 }
 
-local keybindsection = configs:Section{Name = "UI Toggle Keybind", Side = "Left"}
+local keybindsection = configs:Section{Name = "UI Keybinds", Side = "Left"}
 
 keybindsection:Keybind{
-    Name = "UI Toggle",
+    Name = "Toggle UI",
     Flag = "UI Toggle",
-    Default = Enum.KeyCode.Insert,
+    Default = Enum.KeyCode.KeypadZero,
     Blacklist = {Enum.UserInputType.MouseButton1, Enum.UserInputType.MouseButton2, Enum.UserInputType.MouseButton3},
     Callback = function(_, fromsetting)
         if not fromsetting then
@@ -612,5 +476,6 @@ keybindsection:Keybind{
     end
 }
 
---library:Close()
---library:Unload()
+--Theme Shit
+local a={}local b=configs:Section{Name="Custom Theme",Side="Right"}a["Accent"]=b:ColorPicker{Name="Accent",Default=library.theme["Accent"],Flag="Accent",Callback=function(c)library:ChangeThemeOption("Accent",c)end}library:ConfigIgnore("Accent")a["Window Background"]=b:ColorPicker{Name="Window Background",Default=library.theme["Window Background"],Flag="Window Background",Callback=function(c)library:ChangeThemeOption("Window Background",c)end}library:ConfigIgnore("Window Background")a["Window Border"]=b:ColorPicker{Name="Window Border",Default=library.theme["Window Border"],Flag="Window Border",Callback=function(c)library:ChangeThemeOption("Window Border",c)end}library:ConfigIgnore("Window Border")a["Tab Background"]=b:ColorPicker{Name="Tab Background",Default=library.theme["Tab Background"],Flag="Tab Background",Callback=function(c)library:ChangeThemeOption("Tab Background",c)end}library:ConfigIgnore("Tab Background")a["Tab Border"]=b:ColorPicker{Name="Tab Border",Default=library.theme["Tab Border"],Flag="Tab Border",Callback=function(c)library:ChangeThemeOption("Tab Border",c)end}library:ConfigIgnore("Tab Border")a["Tab Toggle Background"]=b:ColorPicker{Name="Tab Toggle Background",Default=library.theme["Tab Toggle Background"],Flag="Tab Toggle Background",Callback=function(c)library:ChangeThemeOption("Tab Toggle Background",c)end}library:ConfigIgnore("Tab Toggle Background")a["Section Background"]=b:ColorPicker{Name="Section Background",Default=library.theme["Section Background"],Flag="Section Background",Callback=function(c)library:ChangeThemeOption("Section Background",c)end}library:ConfigIgnore("Section Background")a["Section Border"]=b:ColorPicker{Name="Section Border",Default=library.theme["Section Border"],Flag="Section Border",Callback=function(c)library:ChangeThemeOption("Section Border",c)end}library:ConfigIgnore("Section Border")a["Text"]=b:ColorPicker{Name="Text",Default=library.theme["Text"],Flag="Text",Callback=function(c)library:ChangeThemeOption("Text",c)end}library:ConfigIgnore("Text")a["Disabled Text"]=b:ColorPicker{Name="Disabled Text",Default=library.theme["Disabled Text"],Flag="Disabled Text",Callback=function(c)library:ChangeThemeOption("Disabled Text",c)end}library:ConfigIgnore("Disabled Text")a["Object Background"]=b:ColorPicker{Name="Object Background",Default=library.theme["Object Background"],Flag="Object Background",Callback=function(c)library:ChangeThemeOption("Object Background",c)end}library:ConfigIgnore("Object Background")a["Object Border"]=b:ColorPicker{Name="Object Border",Default=library.theme["Object Border"],Flag="Object Border",Callback=function(c)library:ChangeThemeOption("Object Border",c)end}library:ConfigIgnore("Object Border")a["Dropdown Option Background"]=b:ColorPicker{Name="Dropdown Option Background",Default=library.theme["Dropdown Option Background"],Flag="Dropdown Option Background",Callback=function(c)library:ChangeThemeOption("Dropdown Option Background",c)end}library:ConfigIgnore("Dropdown Option Background")
+--Theme Shit 
